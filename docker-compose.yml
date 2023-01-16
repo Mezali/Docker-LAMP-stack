@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  php:
+    build: 
+      context: ./bin/php
+    container_name: "${nome_projeto}-ApachePHP"
+    restart: "always"
+    ports:
+      - "${PortaHTTP}:80"
+      - "${PortaHTTPS}:443"
+    links:
+      - banco
+    volumes:
+      - ./www:/var/www/html
+    environment:
+      PMA_PORT: ${PortaPMA}
+
+  banco:
+    build: 
+      context: ./bin/mariaDB
+    container_name: "${nome_projeto}-banco"
+    init: true
+    restart: "always"
+    ports:
+      - "127.0.0.1:${PortaMariaDB}:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SenhaRootBD}
+      MYSQL_DATABASE: ${BD}
+      MYSQL_USER: ${UserBD}
+      MYSQL_PASSWORD: ${UserSenha}
+
+  pma:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: "${nome_projeto}-pma"
+    links:
+      - banco
+    environment:
+      PMA_HOST: banco
+      PMA_PORT: 3306
+      PMA_USER: ${UserBD}
+      PMA_PASSWORD: ${UserSenha}
+      SenhaRootBD: ${SenhaRootBD}
+      UserBD: ${UserBD}
+      UserSenha: ${UserSenha}
+    ports:
+      - "${PortaPMA}:80"
